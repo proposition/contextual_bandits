@@ -59,7 +59,6 @@ class LinUCB(RecSystem):
         self.A0 += BA @ B
         self.b0 += BA @ b
 
-        def f(vect): return np.array([vect]).T @ np.array([vect])
         self.A[action['id']] += np.array([x]).T @ np.array([x])
         self.B[action['id']] += np.array([x]).T @ np.array([z])
         self.b[action['id']] += payoff * x
@@ -75,18 +74,18 @@ class LinUCB(RecSystem):
 
         A0i = np.linalg.inv(self.A0)
         beta = A0i @ self.b0
-        best_action, best_p = None, - np.inf
+        best, best_p = None, - np.inf
         for action in documents:
             A, B, b = self.get_action_param(action['id'])
             Ai = np.linalg.inv(A)
             teta = Ai @ (b - B @ beta)
             z, x = user['features'], action['features']
             s = z @ A0i @ z + x @ Ai @ x
-            s += (x.T @ Ai @ B - 2 * z.T) @ A0i @ B.T @ Ai @ x
-            p = z.T @ beta + x.T @ teta + self.alpha * np.sqrt(s)
+            s += (x @ Ai @ B - 2 * z) @ A0i @ B.T @ Ai @ x
+            p = z @ beta + x @ teta + self.alpha * np.sqrt(s)
 
             if p > best_p:
-                best_action = action
+                best = action
                 best_p = p
 
-        return best_action
+        return best
